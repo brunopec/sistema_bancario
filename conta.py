@@ -6,16 +6,16 @@ class Conta:
         self.usuario = usuario
         self._senha = senha
         self.saldo = 0.0
-    def auth(self, senha):
-        return self._senha == senha
     def depositar(self, valor):
         if valor > 0:
            self.saldo += valor
+           self._gerar_comprovante("depósito", valor)
            return True
         return False 
     def sacar(self, valor):
         if valor <= self.saldo:
             self.saldo -= valor
+            self._gerar_comprovante("saque", valor)
             return True
         else:
             return False
