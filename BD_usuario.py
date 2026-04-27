@@ -1,5 +1,7 @@
 import sqlite3 as sql
 from tkinter import messagebox
+import conta as conta
+
 
 # ------------------ BANCO ------------------
 def criar_banco():
@@ -72,6 +74,14 @@ def realizar_login(janela_login, abrir_tela_usuario, entry_usuario, entry_senha)
     else:
         messagebox.showerror("Erro", "Usuário ou senha incorretos!")
 
+#--------------------NOME------------------
+def obter_nome(usuario):
+    conn = sql.connect('banco.db')
+    cursor = conn.cursor()
+    cursor.execute("SELECT nome FROM usuarios WHERE usuario = ?", (usuario,))
+    resultado = cursor.fetchone()
+    conn.close()
+    return resultado[0] if resultado else "Usuário"
 
 # ------------------ SALDO ------------------
 def consultar_saldo(usuario):
@@ -85,8 +95,9 @@ def consultar_saldo(usuario):
     return resultado[0] if resultado else 0.0
 
 
+
 # ------------------ DEPOSITAR ------------------
-def depositar(usuario, valor):
+def depositar(nome, usuario, valor, funcao_gerar_comprovante):
     if valor <= 0:
         messagebox.showerror("Erro", "Valor inválido!")
         return False
@@ -94,18 +105,25 @@ def depositar(usuario, valor):
     conn = sql.connect('banco.db')
     cursor = conn.cursor()
 
-    cursor.execute(
-        "UPDATE usuarios SET saldo = saldo + ? WHERE usuario = ?",
-        (valor, usuario)
-    )
+    try:
+        cursor.execute(
+            "UPDATE usuarios SET saldo = saldo + ? WHERE usuario = ?",
+            (valor, usuario)
+        )
+        conn.commit()
+        
+        funcao_gerar_comprovante(nome,"deposito", valor) 
+        return True 
 
-    conn.commit()
-    conn.close()
-    return True
-
+    except Exception as e:
+        messagebox.showerror("Erro", f"Falha na operação: {e}")
+        return False
+    finally:
+        conn.close()
+       
 
 # ------------------ SACAR ------------------
-def sacar(usuario, valor):
+def sacar(nome, usuario, valor, gerar_comprovante):
     saldo = consultar_saldo(usuario)
 
     if valor <= 0:
@@ -126,37 +144,30 @@ def sacar(usuario, valor):
 
     conn.commit()
     conn.close()
+    gerar_comprovante(nome, "saque", valor)
     return True
+    
 
 
 # ------------------ TRANSFERIR ------------------
-def transferir(origem, destino, valor):
-    if origem == destino:
-        messagebox.showerror("Erro", "Não pode transferir para si mesmo!")
-        return False
 
-    if valor <= 0:
-        messagebox.showerror("Erro", "Valor inválido!")
-        return False
-
-    saldo = consultar_saldo(origem)
-
-    if valor > saldo:
-        messagebox.showerror("Erro", "Saldo insuficiente!")
-        return False
-
+def transferir(nome, origem, destino, valor, gerar_comprovante):
+    
+    
     conn = sql.connect('banco.db')
     cursor = conn.cursor()
-
-    cursor.execute("SELECT usuario FROM usuarios WHERE usuario = ?", (destino,))
-    if not cursor.fetchone():
-        messagebox.showerror("Erro", "Usuário destino não existe!")
-        conn.close()
+    try:
+        cursor.execute("UPDATE usuarios SET saldo = saldo - ? WHERE usuario = ?", (valor, origem))
+        cursor.execute("UPDATE usuarios SET saldo = saldo + ? WHERE usuario = ?", (valor, destino))
+        conn.commit()
+        
+        
+        gerar_comprovante(nome, "transferencia", valor)
+        return True
+    except Exception as e:
+        conn.rollback()
+        messagebox.showerror("Erro", f"Erro na transferência: {e}")
         return False
-
-    cursor.execute("UPDATE usuarios SET saldo = saldo - ? WHERE usuario = ?", (valor, origem))
-    cursor.execute("UPDATE usuarios SET saldo = saldo + ? WHERE usuario = ?", (valor, destino))
-
-    conn.commit()
-    conn.close()
-    return True
+    finally:
+        conn.close()
+    

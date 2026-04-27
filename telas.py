@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox
 import BD_usuario as BD
+import conta as conta
 
 # ------------------ LOGIN ------------------
 def tela_login():
@@ -9,13 +10,30 @@ def tela_login():
     janela_login.geometry("400x450")
     janela_login.configure(bg="#f0f0f0")
 
-    tk.Label(janela_login, text="SISTEMA BANCÁRIO", font=("Arial", 18, "bold"), bg="#f0f0f0").pack(pady=30)
+    tk.Label(
+        janela_login,
+        text="SISTEMA BANCÁRIO",
+        font=(
+            "Arial",
+            18,
+            "bold"
+        ),
+        bg="#f0f0f0"
+    ).pack(pady=30)
 
-    tk.Label(janela_login, text="Usuário:", bg="#f0f0f0").pack()
+    tk.Label(
+        janela_login,
+        text="Usuário:",
+        bg="#f0f0f0"
+    ).pack()
     entry_usuario = tk.Entry(janela_login)
     entry_usuario.pack(pady=5)
 
-    tk.Label(janela_login, text="Senha:", bg="#f0f0f0").pack()
+    tk.Label(
+        janela_login,
+        text="Senha:",
+        bg="#f0f0f0"
+    ).pack()
     entry_senha = tk.Entry(janela_login, show="*")
     entry_senha.pack(pady=5)
 
@@ -30,14 +48,17 @@ def tela_login():
         janela_login,
         text="CADASTRAR",
         command=lambda: tela_cadastro(janela_login),
-        bg="#0029E2", fg="white", width=20
+        bg="#0029E2",
+        fg="white",
+        width=20
     ).pack(pady=5)
 
     tk.Button(
         janela_login,
         text="SAIR",
         command=janela_login.destroy,
-        bg="#f44336", fg="white"
+        bg="#f44336",
+        fg="white"
     ).pack(pady=20)
 
     janela_login.mainloop()
@@ -52,17 +73,38 @@ def tela_cadastro(janela_login):
     janela_cadastro.geometry("400x450")
     janela_cadastro.configure(bg="#f0f0f0")
 
-    tk.Label(janela_cadastro, text="CADASTRO DE USUÁRIO", font=("Arial", 18, "bold"), bg="#f0f0f0").pack(pady=30)
+    tk.Label(
+        janela_cadastro,
+        text="CADASTRO DE USUÁRIO",
+        font=(
+            "Arial",
+            18,
+            "bold"
+        ),
+        bg="#f0f0f0"
+    ).pack(pady=30)
 
-    tk.Label(janela_cadastro, text="Nome:", bg="#f0f0f0").pack()
+    tk.Label(
+        janela_cadastro,
+        text="Nome:",
+        bg="#f0f0f0"
+    ).pack()
     entry_nome = tk.Entry(janela_cadastro)
     entry_nome.pack(pady=5)
 
-    tk.Label(janela_cadastro, text="Usuário:", bg="#f0f0f0").pack()
+    tk.Label(
+        janela_cadastro,
+        text="Usuário:",
+        bg="#f0f0f0"
+    ).pack()
     entry_usuario = tk.Entry(janela_cadastro)
     entry_usuario.pack(pady=5)
 
-    tk.Label(janela_cadastro, text="Senha:", bg="#f0f0f0").pack()
+    tk.Label(
+        janela_cadastro,
+        text="Senha:",
+        bg="#f0f0f0"
+    ).pack()
     entry_senha = tk.Entry(janela_cadastro, show="*")
     entry_senha.pack(pady=5)
 
@@ -87,7 +129,7 @@ def tela_usuario(usuario, janela_login):
     tela.title("Área do Usuário")
     tela.geometry("400x450")
     tela.configure(bg="#f0f0f0")
-
+    nome_usuario_logado = BD.obter_nome(usuario)
     def atualizar():
         saldo = BD.consultar_saldo(usuario)
         label_saldo.config(text=f"Saldo: R$ {saldo:.2f}")
@@ -96,20 +138,52 @@ def tela_usuario(usuario, janela_login):
         tela.destroy()
         janela_login.deiconify()
 
-    tk.Label(tela, text=f"Bem-vindo!", font=("Arial", 16, "bold")).pack(pady=30)
+    tk.Label(
+        tela,
+        text=f"Bem-vindo, {nome_usuario_logado}!",
+        font=(
+            "Arial",
+            16,
+            "bold"
+        )
+    ).pack(pady=30)
 
-    label_saldo = tk.Label(tela, text=f"Saldo: R$ {BD.consultar_saldo(usuario):.2f}")
+    label_saldo = tk.Label(
+        tela, 
+        text=f"Saldo: R$ {BD.consultar_saldo(usuario):.2f}"
+    )
     label_saldo.pack(pady=10)
 
-    tk.Button(tela, text="DEPOSITAR", command=lambda: tela_deposito(usuario, atualizar), bg="#4CAF50", fg="white", width=20).pack(pady=5)
-    tk.Button(tela, text="SACAR", command=lambda: tela_saque(usuario, atualizar), bg="#FF9800", fg="white", width=20).pack(pady=5)
-    tk.Button(tela, text="TRANSFERIR", command=lambda: tela_transferencia(usuario, atualizar), bg="#2196F3", fg="white", width=20).pack(pady=5)
+    tk.Button(
+        tela,
+        text="DEPOSITAR",
+        command=lambda: tela_deposito(nome_usuario_logado, usuario, atualizar, conta.gerar_comprovante),
+        bg="#4CAF50",
+        fg="white",
+        width=20
+    ).pack(pady=5)
+    tk.Button(
+        tela,
+        text="SACAR",
+        command=lambda: tela_saque(nome_usuario_logado, usuario, atualizar, conta.gerar_comprovante),
+        bg="#FF9800",
+        fg="white",
+        width=20
+    ).pack(pady=5)
+    tk.Button(
+        tela,
+        text="TRANSFERIR",
+        command=lambda: tela_transferencia(nome_usuario_logado, usuario, atualizar, conta.gerar_comprovante),
+        bg="#2196F3",
+        fg="white",
+        width=20
+    ).pack(pady=5)
 
     tk.Button(tela, text="SAIR", command=sair, bg="#f44336", fg="white", width=20).pack(pady=20)
 
 
 # ------------------ DEPÓSITO ------------------
-def tela_deposito(usuario, atualizar):
+def tela_deposito(nome, usuario, atualizar, gerar_comprovante):
     tela = tk.Toplevel()
     tela.title("Depósito")
 
@@ -123,12 +197,12 @@ def tela_deposito(usuario, atualizar):
         tela,
         text="CONFIRMAR",
         bg="#4CAF50", fg="white",
-        command=lambda: [BD.depositar(usuario, float(entry.get())), atualizar()]
+        command=lambda: [BD.depositar(nome, usuario, float(entry.get()), conta.gerar_comprovante), atualizar()]
     ).pack()
 
 
 # ------------------ SAQUE ------------------
-def tela_saque(usuario, atualizar):
+def tela_saque(nome, usuario, atualizar, gerar_comprovante):
     tela = tk.Toplevel()
     tela.title("Saque")
 
@@ -142,12 +216,12 @@ def tela_saque(usuario, atualizar):
         tela,
         text="CONFIRMAR",
         bg="#4CAF50", fg="white",
-        command=lambda: [BD.sacar(usuario, float(entry.get())), atualizar()]
+        command=lambda: [BD.sacar(nome, usuario, float(entry.get()), gerar_comprovante), atualizar()]
     ).pack()
 
 
 # ------------------ TRANSFERÊNCIA ------------------
-def tela_transferencia(usuario, atualizar):
+def tela_transferencia(nome, usuario, atualizar, gerar_comprovante):
     tela = tk.Toplevel()
     tela.title("Transferência")
     tk.Label(tela,
@@ -165,7 +239,7 @@ def tela_transferencia(usuario, atualizar):
         tela,
         text="TRANSFERIR",
         command=lambda: [
-            BD.transferir(usuario, entry_destino.get(), float(entry_valor.get())),
+            BD.transferir(nome, usuario, entry_destino.get(), float(entry_valor.get()), gerar_comprovante),
             atualizar()
         ]
     ).pack()

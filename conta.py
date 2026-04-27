@@ -1,5 +1,20 @@
 from datetime import datetime
 
+def gerar_comprovante(nome, tipo_operacao, valor):
+    agora = datetime.now()
+    data_titulo = agora.strftime("%d_%m_%Y %H-%M")
+    data_hora = agora.strftime("%d/%m/%Y %H:%M:%S")
+
+    nome_arquivo = f"comprovantes_{nome}_{tipo_operacao}_{data_titulo}.txt"
+
+    with open(nome_arquivo, "x", encoding="utf-8") as arquivo:
+        arquivo.write("Comprovante de Operação\n")
+        arquivo.write(f"Data/Hora: {data_hora}\n")
+        arquivo.write(f"Tipo de Operação: {tipo_operacao}\n")
+        arquivo.write(f"Valor: R$ {valor:.2f}\n")
+        arquivo.write(f"Saldo Atual: R$ {valor:.2f}\n")
+        arquivo.write("-" * 30 + "\n")
+
 class Conta:
     def __init__(self, nome, usuario, senha):
         self.nome = nome
@@ -7,29 +22,5 @@ class Conta:
         self._senha = senha
         self.saldo = 0.0
 
-    def depositar(self, valor):
-        if valor > 0:
-            self.saldo += valor
-            self._gerar_comprovante("depósito", valor)
-            return True
-        return False
 
-    def sacar(self, valor):
-        if valor <= self.saldo:
-            self.saldo -= valor
-            self._gerar_comprovante("saque", valor)
-            return True
-        return False
 
-    def _gerar_comprovante(self, tipo_operacao, valor):
-        agora = datetime.now()
-        data_hora = agora.strftime("%d/%m/%Y %H:%M:%S")
-
-        nome_arquivo = f"comprovantes_{self.usuario}_{tipo_operacao}.txt"
-
-        with open(nome_arquivo, "a", encoding="utf-8") as arquivo:
-            arquivo.write(f"Data/Hora: {data_hora}\n")
-            arquivo.write(f"Tipo de Operação: {tipo_operacao}\n")
-            arquivo.write(f"Valor: R$ {valor:.2f}\n")
-            arquivo.write(f"Saldo Atual: R$ {self.saldo:.2f}\n")
-            arquivo.write("-" * 30 + "\n")
